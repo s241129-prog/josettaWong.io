@@ -1,0 +1,312 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindcare AI - Your Cosmic Mental Health Companion</title>
+    <style>
+        body {
+            font-family: 'Times-new-roman', 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a3d, #3c1053);
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        header {
+            background: url('https://www.transparenttextures.com/patterns/stardust.png'), linear-gradient(135deg, #2b0b5b, #4b0082);
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #ffffff;
+            border-radius: 0 0 20px 20px;
+            position: relative;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+            text-shadow: 0 0 10px #ffffff;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        nav {
+            background: rgba(75, 0, 130, 0.8);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 20px auto;
+            max-width: 1200px;
+            text-align: center;
+        }
+        nav a {
+            color: #ffffff;
+            margin: 0 20px;
+            text-decoration: none;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #ffd700;
+            text-shadow: 0 0 5px #ffd700;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .section h2 {
+            color: #ffd700;
+            margin-top: 0;
+            font-size: 2em;
+            text-shadow: 0 0 5px #ffd700;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        .section p {
+            line-height: 1.6;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        .survey-container, .chatbot-container {
+            margin: 20px 0;
+        }
+        .survey-container iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        .chatbot-container {
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .chatbot-container p {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        .chatbot-input {
+            display: flex;
+            margin-top: 15px;
+        }
+        .chatbot-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            margin-right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 1em;
+        }
+        .chatbot-input input::placeholder {
+            color: #cccccc;
+        }
+        .chatbot-input button {
+            padding: 12px 25px;
+            background: #ffd700;
+            color: #2b0b5b;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .chatbot-input button:hover {
+            background: #ffeb3b;
+            box-shadow: 0 0 10px #ffd700;
+        }
+        footer {
+            background: linear-gradient(135deg, #2b0b5b, #4b0082);
+            color: #ffffff;
+            text-align: center;
+            padding: 15px;
+            border-top: 5px solid #ffffff;
+            border-radius: 20px 20px 0 0;
+            margin-top: 20px;
+        }
+        footer a {
+            color: #ffd700;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        /* Starry background animation */
+        @keyframes twinkle {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png');
+            opacity: 0.3;
+            animation: twinkle 5s infinite;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mindcare AI 🌟</h1>
+        <p>Your Cosmic Companion for Mental Wellness</p>
+    </header>
+    <nav>
+        <a href="#home">Home</a>
+        <a href="#survey">Depression Survey</a>
+        <a href="#chatbot">AI Therapist</a>
+        <a href="#about">About</a>
+    </nav>
+    <div class="container">
+        <div class="section" id="home">
+            <h2>Welcome to Your Safe Space 🌌</h2>
+            <p>Mindcare AI is your starry guide to mental wellness! Our gentle tools help you explore your emotions with a cozy depression survey and a friendly AI therapist chatbot, available anytime you need a listener. We use open data from Kaggle to sprinkle some extra care into our insights, making your journey feel warm and supported.</p>
+        </div>
+        <div class="section" id="survey">
+            <h2>Depression Survey ✨</h2>
+            <p>Our cuddly survey, based on the PHQ-9, helps you check in with your heart. It starts with a few questions about you (age, profession, gender, marital status) and then asks nine gentle questions about how you’ve been feeling. Your answers will sparkle into a score, showing if your risk is Low (0-9), Medium (10-14), or High (15-27). Be kind to yourself and answer honestly! </p>
+            <div class="survey-container">
+               
+                <iframe src="https://www.appsheet.com/template/appdef?appId=PHQ-App-886790240-25-08-10&isCopiedApp=true&appName=PHQ-App-886790240-25-08-10&nonce=0.7473526411608155#Data.Columns.Table%201" title="Mindcare AI Depression Survey"></iframe>
+                <p><em>Note: Replace 'YOUR_APPSHEET_URL' with your AppSheet survey URL after setting it up. It’ll ask about you and your feelings, then share your risk level with care.</em></p>
+            </div>
+        </div>
+        <div class="section" id="chatbot">
+            <h2>Your AI Therapist Buddy 🤗</h2>
+            <p>👋 “Hi, I’m your Depression Awareness Bot.
+
+            <p> I’m here to help you learn how professionals assess depression and encourage mental well-being.
+
+            <p> This isn’t a diagnosis — just a way to reflect. If you're feeling distressed, please seek help. 💬”</p>
+            <div class="chatbot-container" id="chatbotMessages">
+                <p><strong>Mindcare AI:</strong> Hey there, I’m here to listen with all my heart. What’s on your mind today? 🌙</p>
+            </div>
+            <div class="chatbot-input">
+                <input type="text" id="userInput" placeholder="Share your thoughts...">
+                <button onclick="sendMessage()">Send 🌟</button>
+            </div>
+        </div>
+        <div class="section" id="about">
+            <h2>About Mindcare AI 💫</h2>
+            <p>Mindcare AI is a cozy corner of the universe built to support your mental health. Our PHQ-9 survey helps you understand your emotions, and our Deepseek-powered chatbot is always ready to listen with care. We use open data from Kaggle, like the <a href="https://www.kaggle.com/datasets" target="_blank">PHQ-9 Depression Assessment</a>, to make our tools even more insightful. Your privacy is our priority, and we’re here to empower you with warmth and kindness.</p>
+     
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2025 Mindcare AI. Wrapped in love and stardust. | <a href="#privacy">Privacy Policy</a></p>
+    </footer>
+    <script>
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput').value;
+            if (!userInput) return;
+
+            // Display user's message
+            const chatbotMessages = document.getElementById('chatbotMessages');
+            const userMessage = document.createElement('p');
+            userMessage.innerHTML = `<strong>You:</strong> ${userInput}`;
+            chatbotMessages.appendChild(userMessage);
+
+            // Clear input
+            document.getElementById('userInput').value = '';
+
+            // Call Deepseek API (placeholder)
+            try {
+                const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer sk-517b3eac91cb4f49908d226cee8dbddd'
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: [{ role: 'user', content: userInput }],
+                        max_tokens: 150
+                    })
+                });
+                const data = await response.json();
+                const botReply = data.choices[0].message.content;
+
+                // Display bot's response
+                const botMessage = document.createElement('p');
+                botMessage.innerHTML = `<strong>Mindcare AI:</strong> ${botReply}`;
+                chatbotMessages.appendChild(botMessage);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            } catch (error) {
+                const errorMessage = document.createElement('p');
+                errorMessage.innerHTML = `<strong> Dr. mind:</strong> Oh no! I encountered a problem! Try again later?🌟`;
+                chatbotMessages.appendChild(errorMessage);
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+        }
+
+        // Allow sending message with Enter key
+        document.getElementById('userInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
